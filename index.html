@@ -34,6 +34,24 @@
 
 <div class="screen" id="start">
   <div class="panel">
+    <div class="emblem" aria-hidden="true">
+      <svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="emGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#ffffff"/><stop offset="40%" stop-color="#f2fbfd"/>
+            <stop offset="100%" stop-color="rgba(202,213,247,0)"/>
+          </radialGradient>
+          <linearGradient id="emWing" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffffff"/><stop offset="60%" stop-color="#e6ecff"/>
+            <stop offset="100%" stop-color="#cad5f7"/>
+          </linearGradient>
+        </defs>
+        <ellipse class="emCore" cx="120" cy="78" rx="40" ry="40" fill="url(#emGlow)"/>
+        <path class="emW emWl" fill="url(#emWing)" d="M118 78 C92 56 52 40 18 44 C36 56 44 70 56 86 C36 80 24 86 22 102 C44 96 62 100 78 112 C58 112 50 122 54 136 C78 124 102 116 118 92 Z"/>
+        <path class="emW emWr" fill="url(#emWing)" d="M122 78 C148 56 188 40 222 44 C204 56 196 70 184 86 C204 80 216 86 218 102 C196 96 178 100 162 112 C182 112 190 122 186 136 C162 124 138 116 122 92 Z"/>
+        <circle class="emHalo" cx="120" cy="44" r="15" fill="none" stroke="#ffffff" stroke-width="2.4"/>
+      </svg>
+    </div>
     <div class="bigtitle silver">Angel</div>
     <div class="bigsub silver">a celestial dream</div>
     <div class="tagline">seven doors · seven questions · one sky</div>

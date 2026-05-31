@@ -169,16 +169,42 @@ document.head.appendChild(styleEl);
 =========================================================== */
 const REDUCE_MOTION=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function makeSky(canvas){
-  const ctx=canvas.getContext('2d');let w,h,orbs=[],t=0,raf=null,visible=true;
+  const ctx=canvas.getContext('2d');let w,h,orbs=[],stars=[],motes=[],t=0,raf=null,visible=true;
   function resize(){w=canvas.width=innerWidth;h=canvas.height=innerHeight;}
   resize();addEventListener('resize',resize);
   orbs=Array.from({length:11},()=>({x:Math.random(),y:Math.random(),r:40+Math.random()*120,
     vx:(Math.random()-.5)*.0004,vy:(Math.random()-.5)*.0004,
     c:['#cad5f7','#daeaf6','#b0f7d0','#99abfd','#f2fbfd','#d8c4ec','#e8c4e0','#c8b4e8'][Math.floor(Math.random()*8)],a:.1+Math.random()*.16}));
+  // twinkling stars
+  stars=Array.from({length:70},()=>({x:Math.random(),y:Math.random(),r:.6+Math.random()*1.8,
+    ph:Math.random()*6.28,sp:.6+Math.random()*1.6}));
+  // rising light motes (particles floating upward)
+  motes=Array.from({length:34},()=>({x:Math.random(),y:Math.random(),r:1+Math.random()*2.6,
+    sp:.00015+Math.random()*.0004,ph:Math.random()*6.28,a:.3+Math.random()*.5}));
   function draw(){
     const g=ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0,'#e2e2f5');g.addColorStop(.4,'#c4bce8');g.addColorStop(.72,'#a6a8de');g.addColorStop(1,'#9a9cd6');
     ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    // central radiant glow (living light, like the reference images)
+    const cx=w*0.5,cy=h*0.42,gr=Math.max(w,h)*0.5;
+    const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,gr);
+    const pulse=0.16+Math.sin(t*1.1)*0.05;
+    cg.addColorStop(0,`rgba(255,255,255,${pulse})`);
+    cg.addColorStop(.3,`rgba(242,251,253,${pulse*0.6})`);
+    cg.addColorStop(1,'rgba(202,213,247,0)');
+    ctx.fillStyle=cg;ctx.fillRect(0,0,w,h);
+    // soft light rays radiating from the glow
+    ctx.save();ctx.translate(cx,cy);
+    for(let i=0;i<10;i++){
+      ctx.rotate(Math.PI*2/10);
+      const sway=Math.sin(t*0.5+i)*0.04;ctx.save();ctx.rotate(sway);
+      const rg=ctx.createLinearGradient(0,0,0,-gr);
+      rg.addColorStop(0,'rgba(255,255,255,.10)');rg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=rg;ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(12,0);ctx.lineTo(40,-gr);ctx.lineTo(-40,-gr);
+      ctx.closePath();ctx.fill();ctx.restore();
+    }
+    ctx.restore();
+    // aurora bands
     const bandCols=[['#b0f7d0','#cad5f7','#99abfd'],['#e8c4e0','#cdbce8','#cad5f7'],['#d8c4ec','#cad5f7','#b0f7d0']];
     for(let i=0;i<3;i++){ctx.save();ctx.globalAlpha=.08;
       const grd=ctx.createLinearGradient(0,h*0.3,w,h*0.6);
@@ -187,10 +213,24 @@ function makeSky(canvas){
       const yy=h*(.3+i*.16)+Math.sin(t+i)*30;
       ctx.moveTo(0,yy);for(let x=0;x<=w;x+=40)ctx.lineTo(x,yy+Math.sin(t*1.3+x*0.004+i)*26);
       ctx.lineTo(w,yy+90);ctx.lineTo(0,yy+90);ctx.closePath();ctx.fill();ctx.restore();}
+    // soft orbs
     orbs.forEach(o=>{o.x+=o.vx;o.y+=o.vy;if(o.x<-.2)o.x=1.2;if(o.x>1.2)o.x=-.2;if(o.y<-.2)o.y=1.2;if(o.y>1.2)o.y=-.2;
       const px=o.x*w,py=o.y*h;const rg=ctx.createRadialGradient(px,py,2,px,py,o.r);
       rg.addColorStop(0,o.c);rg.addColorStop(1,'rgba(255,255,255,0)');
       ctx.globalAlpha=o.a;ctx.fillStyle=rg;ctx.beginPath();ctx.arc(px,py,o.r,0,7);ctx.fill();ctx.globalAlpha=1;});
+    // twinkling stars
+    stars.forEach(s=>{const tw=0.4+Math.abs(Math.sin(t*s.sp+s.ph))*0.6;
+      const px=s.x*w,py=s.y*h;ctx.globalAlpha=tw;ctx.fillStyle='#ffffff';
+      ctx.beginPath();ctx.arc(px,py,s.r,0,7);ctx.fill();
+      if(s.r>1.3){ctx.globalAlpha=tw*0.5;ctx.fillRect(px-s.r*3,py-.4,s.r*6,.8);ctx.fillRect(px-.4,py-s.r*3,.8,s.r*6);}
+      ctx.globalAlpha=1;});
+    // rising motes
+    motes.forEach(m=>{m.y-=m.sp;if(m.y<-.05){m.y=1.05;m.x=Math.random();}
+      const px=(m.x+Math.sin(t*0.6+m.ph)*0.01)*w,py=m.y*h;
+      const fade=m.a*(0.5+Math.sin(t*1.2+m.ph)*0.5);
+      const rg=ctx.createRadialGradient(px,py,0,px,py,m.r*3);
+      rg.addColorStop(0,`rgba(255,255,255,${fade})`);rg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=rg;ctx.beginPath();ctx.arc(px,py,m.r*3,0,7);ctx.fill();});
   }
   function frame(){ if(!visible)return; t+=0.005;draw();raf=requestAnimationFrame(frame); }
   if(REDUCE_MOTION){draw();}            // static if user prefers reduced motion
@@ -389,11 +429,36 @@ async function startFlight(){
       r.position.set((Math.random()-.5)*7,(Math.random()-.5)*5,-i*14);rings.push(r);scene.add(r);}
     for(let i=0;i<16;i++){const sp=new THREE.Mesh(new THREE.SphereGeometry(0.5+Math.random()*0.8,32,32),chrome);
       sp.position.set((Math.random()-.5)*24,(Math.random()-.5)*16,-Math.random()*250);sp.userData.s=1;rings.push(sp);scene.add(sp);}
-    // crystal castle far ahead (abstract spires)
-    castle=new THREE.Group();castle.position.set(0,-2,-300);scene.add(castle);
-    [[0,7,1.6],[-3,5,1.1],[3,5,1.1],[-6,4,1],[6,4,1]].forEach(p=>{
-      const tw=new THREE.Mesh(new THREE.CylinderGeometry(p[2]*.7,p[2],p[1],12),crystal);tw.position.set(p[0],p[1]/2,0);castle.add(tw);
-      const rf=new THREE.Mesh(new THREE.ConeGeometry(p[2]*1.1,p[1]*.7,12),chrome);rf.position.set(p[0],p[1]+p[1]*.32,0);castle.add(rf);});
+    // ===== crystal temple far ahead (domed sanctuary, inspired by an ice palace) =====
+    castle=new THREE.Group();castle.position.set(0,-3,-300);scene.add(castle);
+    const domeMat=new THREE.MeshStandardMaterial({color:0xeaf2ff,metalness:.4,roughness:.05,envMap:env,transparent:true,opacity:.6});
+    // central body
+    const body=new THREE.Mesh(new THREE.BoxGeometry(9,5,6),crystal);body.position.set(0,2.5,0);castle.add(body);
+    // grand central dome
+    const dome=new THREE.Mesh(new THREE.SphereGeometry(4,32,24,0,Math.PI*2,0,Math.PI/2),domeMat);
+    dome.position.set(0,5,0);castle.add(dome);
+    // central tall spire with a glowing tip
+    const spire=new THREE.Mesh(new THREE.ConeGeometry(0.9,5,16),chrome);spire.position.set(0,10,0);castle.add(spire);
+    const tip=new THREE.Mesh(new THREE.SphereGeometry(0.6,20,20),
+      new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xcad5f7,emissiveIntensity:1.4,metalness:.2,roughness:.1}));
+    tip.position.set(0,12.8,0);castle.add(tip);
+    // glowing inner core (light spilling from the entrance)
+    const core=new THREE.Mesh(new THREE.SphereGeometry(1.6,24,24),
+      new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:1.1,transparent:true,opacity:.85}));
+    core.position.set(0,2.4,0);castle.add(core);
+    castle.add(new THREE.PointLight(0xeaf2ff,2.2,40).translateY(3));
+    // corner towers with onion domes + spire tips
+    [[-6.5,0],[6.5,0],[-5,-3.2],[5,-3.2]].forEach(p=>{
+      const tw=new THREE.Mesh(new THREE.CylinderGeometry(0.9,1.1,6,14),crystal);tw.position.set(p[0],3,p[1]);castle.add(tw);
+      const od=new THREE.Mesh(new THREE.SphereGeometry(1.15,20,16),domeMat);od.position.set(p[0],6.4,p[1]);od.scale.y=1.25;castle.add(od);
+      const ot=new THREE.Mesh(new THREE.ConeGeometry(0.3,1.6,12),chrome);ot.position.set(p[0],8,p[1]);castle.add(ot);
+    });
+    // entrance archway (two pillars + lintel framing the glow)
+    [[-2.4],[2.4]].forEach(p=>{const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.55,5,12),chrome);
+      pil.position.set(p[0],2.5,3.1);castle.add(pil);});
+    const arch=new THREE.Mesh(new THREE.TorusGeometry(2.4,0.4,12,24,Math.PI),chrome);
+    arch.position.set(0,4.6,3.1);castle.add(arch);
+    castle.userData.tip=tip;castle.userData.core=core;
     const pg=new THREE.BufferGeometry();const pts=[];
     for(let i=0;i<500;i++)pts.push((Math.random()-.5)*44,(Math.random()-.5)*32,-Math.random()*260);
     pg.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
@@ -408,7 +473,10 @@ async function startFlight(){
     camera.lookAt(Math.sin(t*0.4)*0.6,0,flightZ-20);
     rings.forEach(r=>{if(!r.userData.s)r.rotation.z+=0.012;
       if(r.position.z>camera.position.z+10)r.position.z-=14*20;});
-    if(castle)castle.position.z=flightZ-120;
+    if(castle){castle.position.z=flightZ-120;castle.rotation.y=Math.sin(t*0.15)*0.12;
+      const pulse=1+Math.sin(t*2)*0.3;
+      if(castle.userData.tip)castle.userData.tip.material.emissiveIntensity=1.4*pulse;
+      if(castle.userData.core)castle.userData.core.material.opacity=.7+Math.sin(t*1.6)*0.15;}
     renderer.render(scene,camera);}
   loop();
   }catch(e){ console.warn('flight failed, skipping',e); go('hall'); }
