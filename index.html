@@ -24,6 +24,7 @@
 <body>
 
 <canvas id="bgCanvas"></canvas>
+<div id="grain"></div>
 <div id="loader"><div class="loader-orb"></div><div class="loader-text silver">Angel</div></div>
 <div id="flash"></div>
 <div id="mute" onclick="toggleMute()" title="sound"><svg id="muteIcon" viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16 8c1.5 1.2 1.5 6.8 0 8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M18.5 5.5c3 2.4 3 10.6 0 13" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></div>
@@ -37,10 +38,11 @@
     <div class="bigsub silver">a celestial dream</div>
     <div class="tagline">seven doors · seven questions · one sky</div>
     <div class="gbtn enter" onclick="go('creator')">enter</div>
+    <div class="aboutBtn" onclick="document.getElementById('welcomeWin').classList.remove('closed')">ℹ&nbsp;about</div>
   </div>
 
-  <!-- Aero / Y2K floating welcome window -->
-  <div class="aeroWin" id="welcomeWin" style="left:50%;top:16%;transform:translateX(-50%)">
+  <!-- Aero / Y2K floating welcome window (hidden until 'about' is clicked) -->
+  <div class="aeroWin closed" id="welcomeWin" style="left:50%;top:18%;transform:translateX(-50%)">
     <div class="aeroBar">
       <span class="dot"></span>
       <span class="ttl">welcome.exe</span>
